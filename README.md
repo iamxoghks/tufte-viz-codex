@@ -4,9 +4,13 @@ Codex에서 정량 데이터 시각화를 설계, 비평, 구현할 때 쓰는 T
 
 목표는 장식적인 차트가 아니라 비교가 잘 보이는 분석 화면입니다. 직접 라벨, 명확한 기준선, 실제/추정 구간 분리, 작은 배수, 스파크라인 표, 모바일 검증을 기본으로 둡니다.
 
+This is an independent, unofficial skill. It is inspired by public ideas associated with analytical information design and is not affiliated with, endorsed by, or sponsored by Edward Tufte, Graphics Press, OpenAI, Samsung, Tesla, Yahoo Finance, StockAnalysis, S&P Global, or KB Securities.
+
+The included company examples are illustrative visual-design examples only. They are not investment research, financial advice, or a recommendation to buy or sell securities.
+
 ## 설치
 
-이 private repo를 Codex skills 디렉터리에 clone합니다.
+이 repo를 Codex skills 디렉터리에 clone합니다.
 
 ```bash
 git clone https://github.com/iamxoghks/tufte-viz-codex.git ~/.codex/skills/tufte-viz-codex
@@ -194,3 +198,7 @@ function sparkline(values, width = 150, height = 28) {
 - [`references/analytical-design.md`](references/analytical-design.md)
 - [`references/integrity-checklist.md`](references/integrity-checklist.md)
 - [`references/web-implementation.md`](references/web-implementation.md)
+
+## License
+
+MIT. See [`LICENSE`](LICENSE).
