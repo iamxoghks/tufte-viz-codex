@@ -636,7 +636,7 @@
 
     function drawIndexChart() {
       const width = 540, height = 260;
-      const margin = { top: 28, right: 70, bottom: 46, left: 58 };
+      const margin = { top: 28, right: 96, bottom: 46, left: 58 };
       const innerW = width - margin.left - margin.right;
       const innerH = height - margin.top - margin.bottom;
       const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "TSLA 주가 매출 인도량 2016년 기준 정규화 지수" });
@@ -648,7 +648,7 @@
         { name: "인도량", values: actual.map(d => ({ year: d.year, value: d.deliveries / actual[0].deliveries * 100 })), stroke: "var(--forecast)" }
       ];
       const x = scale([2016, 2025], [margin.left, margin.left + innerW]);
-      const y = scale([0, 2600], [margin.top + innerH, margin.top]);
+      const y = scale([0, 3400], [margin.top + innerH, margin.top]);
       for (const tick of [100, 1000, 2000]) {
         const yy = y(tick);
         svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: "gridline" }));
@@ -658,7 +658,7 @@
       for (const s of series) {
         svg.appendChild(el("path", { d: path(s.values.map(d => [x(d.year), y(d.value)])), fill: "none", stroke: s.stroke, "stroke-width": 1.8 }));
         const last = s.values[s.values.length - 1];
-        svg.appendChild(el("text", { x: x(last.year) + 8, y: y(last.value) + 4, class: "value", fill: s.stroke }, [`${s.name} ${Math.round(last.value)}`]));
+        svg.appendChild(el("text", { x: x(last.year) + 6, y: y(last.value) + 4, class: "value", fill: s.stroke }, [`${s.name} ${Math.round(last.value)}`]));
       }
       for (const yr of [2016, 2019, 2022, 2025]) svg.appendChild(el("text", { x: x(yr), y: height - 20, "text-anchor": "middle", class: "tick" }, [String(yr)]));
       svg.appendChild(el("text", { x: margin.left, y: height - 4, class: "source" }, ["2016=100. 단위가 다른 지표를 같은 출발점으로 비교."]));

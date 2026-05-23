@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Visualization Lab Template</title>
+  <style>
+    :root { --paper: #fbfaf7; --ink: #171717; --muted: #6b665d; --rule: #c9c1b4; --faint: #e5e0d7; --focus: #b3261e; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    main { width: min(1120px, calc(100vw - 32px)); margin: 32px auto; }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 52px); font-weight: 600; }
+    p { margin: 0; color: var(--muted); }
+    .lab-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 24px; }
+    .panel { min-width: 0; border-top: 1px solid var(--rule); padding-top: 10px; }
+    .panel h2 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+    .chart { min-height: 0; overflow-x: hidden; }
+    svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .gridline { stroke: var(--faint); stroke-width: 0.7; }
+    .axis { stroke: var(--muted); stroke-width: 0.8; }
+    .tick, .source { fill: var(--muted); font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .label, .value { fill: var(--ink); font-size: 12px; font-weight: 550; }
+    @media (max-width: 760px) { .lab-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Visualization Lab</h1>
+    <p>Use the same dataset to answer different analytical questions. Replace the sample data and labels.</p>
+    <div class="lab-grid">
+      <section class="panel"><h2>Normalized index</h2><p>Compare unlike units from a shared baseline.</p><div id="indexChart" class="chart"></div></section>
+      <section class="panel"><h2>Slopegraph</h2><p>Compare before/after direction and magnitude.</p><div id="slopeChart" class="chart"></div></section>
+      <section class="panel"><h2>Scatterplot</h2><p>Check whether two measures move together.</p><div id="scatterChart" class="chart"></div></section>
+      <section class="panel"><h2>Ranked dot plot</h2><p>Rank distance from peak or target.</p><div id="dotChart" class="chart"></div></section>
+    </div>
+  </main>
+  <script>
+    const years = [2020, 2021, 2022, 2023, 2024, 2025];
+    const rows = [
+      { name: "A", values: [100, 126, 150, 181, 206, 232], stroke: "var(--ink)" },
+      { name: "B", values: [100, 92, 110, 145, 170, 161], stroke: "var(--focus)" },
+      { name: "C", values: [100, 140, 210, 260, 300, 355], stroke: "#385f71" }
+    ];
+    function el(name, attrs = {}, children = []) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+      for (const child of children) node.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
+      return node;
+    }
+    function scale(domain, range) {
+      const [d0, d1] = domain;
+      const [r0, r1] = range;
+      return value => r0 + ((value - d0) / (d1 - d0)) * (r1 - r0);
+    }
+    function path(points) {
+      return points.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+    }
+    function drawIndex() {
+      const width = 540, height = 260, margin = { top: 24, right: 70, bottom: 42, left: 54 };
+      const x = scale([2020, 2025], [margin.left, width - margin.right]);
+      const y = scale([80, 380], [height - margin.bottom, margin.top]);
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "Normalized index chart template" });
+      for (const tick of [100, 200, 300]) {
+        svg.appendChild(el("line", { x1: margin.left, x2: width - margin.right, y1: y(tick), y2: y(tick), class: tick === 100 ? "axis" : "gridline" }));
+        svg.appendChild(el("text", { x: margin.left - 8, y: y(tick) + 4, "text-anchor": "end", class: "tick" }, [String(tick)]));
+      }
+      for (const s of rows) {
+        svg.appendChild(el("path", { d: path(s.values.map((v, i) => [x(years[i]), y(v)])), fill: "none", stroke: s.stroke, "stroke-width": 1.8 }));
+        svg.appendChild(el("text", { x: width - margin.right + 8, y: y(s.values.at(-1)) + 4, class: "value", fill: s.stroke }, [`${s.name} ${s.values.at(-1)}`]));
+      }
+      document.getElementById("indexChart").appendChild(svg);
+    }
+    function drawSlope() {
+      const width = 540, height = 260, margin = { top: 28, right: 118, bottom: 36, left: 70 };
+      const y = scale([80, 380], [height - margin.bottom, margin.top]);
+      const x0 = margin.left + 40, x1 = width - margin.right;
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "Slopegraph template" });
+      svg.appendChild(el("text", { x: x0, y: 18, "text-anchor": "middle", class: "label" }, ["2020=100"]));
+      svg.appendChild(el("text", { x: x1, y: 18, "text-anchor": "middle", class: "label" }, ["2025"]));
+      for (const s of rows) {
+        const end = s.values.at(-1);
+        const stroke = end < 100 ? "var(--focus)" : "var(--ink)";
+        svg.appendChild(el("line", { x1: x0, x2: x1, y1: y(100), y2: y(end), stroke, "stroke-width": 1.4 }));
+        svg.appendChild(el("circle", { cx: x0, cy: y(100), r: 3.4, fill: stroke }));
+        svg.appendChild(el("circle", { cx: x1, cy: y(end), r: 3.4, fill: stroke }));
+        svg.appendChild(el("text", { x: x1 + 10, y: y(end) + 4, class: "value", fill: stroke }, [`${s.name} ${end}`]));
+      }
+      document.getElementById("slopeChart").appendChild(svg);
+    }
+    function drawScatter() {
+      const width = 540, height = 260, margin = { top: 24, right: 36, bottom: 48, left: 54 };
+      const x = scale([0, 10], [margin.left, width - margin.right]);
+      const y = scale([-10, 30], [height - margin.bottom, margin.top]);
+      const points = [{ x: 1, y: -4 }, { x: 3, y: 6 }, { x: 5, y: 14 }, { x: 7, y: 10 }, { x: 9, y: 22 }];
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "Scatterplot template" });
+      for (const tick of [0, 10, 20, 30]) svg.appendChild(el("line", { x1: margin.left, x2: width - margin.right, y1: y(tick), y2: y(tick), class: tick === 0 ? "axis" : "gridline" }));
+      for (const p of points) svg.appendChild(el("circle", { cx: x(p.x), cy: y(p.y), r: 4, fill: p.y < 0 ? "var(--focus)" : "var(--ink)" }));
+      svg.appendChild(el("text", { x: width - margin.right, y: height - 6, "text-anchor": "end", class: "source" }, ["x: scale measure, y: rate measure"]));
+      document.getElementById("scatterChart").appendChild(svg);
+    }
+    function drawDot() {
+      const width = 540, height = 260, margin = { top: 28, right: 50, bottom: 40, left: 118 };
+      const items = [{ name: "A", value: -42 }, { name: "B", value: -18 }, { name: "C", value: -8 }, { name: "D", value: 0 }].sort((a, b) => a.value - b.value);
+      const x = scale([-50, 5], [margin.left, width - margin.right]);
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "Ranked dot plot template" });
+      svg.appendChild(el("line", { x1: x(0), x2: x(0), y1: margin.top, y2: height - margin.bottom, class: "axis" }));
+      items.forEach((d, i) => {
+        const y = margin.top + 24 + i * 38;
+        svg.appendChild(el("line", { x1: x(0), x2: x(d.value), y1: y, y2: y, stroke: "var(--rule)" }));
+        svg.appendChild(el("circle", { cx: x(d.value), cy: y, r: 5, fill: d.value < -25 ? "var(--focus)" : "var(--ink)" }));
+        svg.appendChild(el("text", { x: margin.left - 12, y: y + 4, "text-anchor": "end", class: "label" }, [d.name]));
+        svg.appendChild(el("text", { x: x(d.value) - 8, y: y + 4, "text-anchor": "end", class: "value" }, [`${d.value}%`]));
+      });
+      document.getElementById("dotChart").appendChild(svg);
+    }
+    drawIndex(); drawSlope(); drawScatter(); drawDot();
+  </script>
+</body>
+</html>

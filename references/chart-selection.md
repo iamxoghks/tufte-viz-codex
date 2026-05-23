@@ -35,6 +35,35 @@ Choose the display from the data shape and the reader's job. Do not choose by wh
 | Multivariate comparison | Small multiples, table with sparklines, or layered annotated view | Radar chart for general audiences |
 | Process plus data | Annotated sequence, small multiples through time, or process/data pairing | Pure flowchart with no measured evidence |
 
+## Decision Tree
+
+Use this order before choosing a chart:
+
+1. **What is the reader trying to do?**
+   - Compare: rank or see gaps.
+   - Track: see change over time.
+   - Relate: test whether variables move together.
+   - Distribute: see spread, tails, or typical values.
+   - Explain: show sequence, mechanism, or causal evidence.
+   - Monitor: judge current status against history, target, or peers.
+2. **Are the measures in the same unit?**
+   - Same unit: grouped bars, grouped dots, paired dots, or one shared-scale panel.
+   - Same unit but scale gap: small multiples if the smaller metric becomes unreadable.
+   - Different unit or rate: aligned panels on a shared axis.
+3. **Is time the organizing dimension?**
+   - One measure over time: line chart or sparkline.
+   - Many groups over time: small multiples or directly labeled lines.
+   - Before/after: slopegraph or paired dot plot.
+4. **Is uncertainty or forecast present?**
+   - Separate actuals from estimates with boundary, color, dash, or annotation.
+   - Use bands only when uncertainty ranges are sourced.
+   - Use separate target markers for analyst targets.
+5. **Do exact values matter as much as shape?**
+   - Use a table with sparklines or compact bars.
+   - Keep units and source notes close to the table.
+6. **Would a simpler sentence answer the question?**
+   - If yes, use a sentence plus a compact number/sparkline instead of a full chart.
+
 ## Sorting Rules
 
 - Sort categorical comparisons by the value the reader cares about.
@@ -67,3 +96,10 @@ Use this decision order:
 2. **Same unit but large scale gap**: offer or choose small multiples when the smaller measure becomes unreadable or when each metric's individual trend matters more than same-unit comparison.
 3. **Different units or rates**: split into aligned panels on the same time axis.
 4. **Dual axis**: use only when the user explicitly needs it or when there is a defensible analytical reason that survives a label/readability check.
+
+## Forecast-Aware Choices
+
+- Actual history plus analyst target: line chart for actual history, target as a separate point or band.
+- Actual history plus estimate values for the same metric: continue the time axis but change color/line style and add an actual/estimate boundary.
+- Actual values for several metrics but estimates for only one: plot estimates only for the sourced metric and leave other estimate fields blank or labeled unavailable.
+- Model forecast made by the agent: show it as a scenario and document the formula, not as external consensus.

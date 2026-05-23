@@ -2,6 +2,19 @@
 
 Run this before considering a visualization done.
 
+For sourced or forecasted data, also read `data-integrity.md`.
+
+## Required Final Checks
+
+Before final answer or handoff, verify:
+
+- The main chart answers the user's stated question rather than merely displaying available data.
+- Every visual encoding has a documented unit, source, and time range when the data is not synthetic sample data.
+- Actuals, estimates, targets, and assumptions are visually distinguishable.
+- Missing forecast fields are marked unavailable instead of being inferred from adjacent metrics.
+- Labels, annotations, and source notes do not overlap marks at the intended desktop and mobile widths.
+- The output was rendered or exported at least once when feasible.
+
 ## Data Honesty
 
 - Values are proportional to visual marks.
@@ -16,6 +29,8 @@ Run this before considering a visualization done.
 - Forecasts, estimates, missing values, and uncertainty are visually distinct.
 - Forecasts or analyst estimates are not styled as a continuation of audited actuals unless that continuity is the intended claim.
 - Do not invent missing forecast series from adjacent metrics. If revenue estimates exist but operating income or margin estimates do not, show only revenue estimates and mark the missing fields as unavailable.
+- Analyst target prices are markers, bands, or separate scenarios, not a continuation of actual price history.
+- Normalized index charts are not used when the baseline is zero, negative, missing, or analytically unstable.
 
 ## Analytical Completeness
 
@@ -49,6 +64,8 @@ Run this before considering a visualization done.
 - The chart has stable responsive dimensions and no label overlap at common mobile and desktop widths.
 - Keyboard and screen-reader affordances are considered for interactive charts.
 - Render verification was performed when feasible.
+- For standalone HTML examples, run `node scripts/verify-html.js <file>` when Playwright is available.
+- If wide charts intentionally scroll on mobile, compact repeated panels still fit their own panel width.
 
 ## Final Response
 

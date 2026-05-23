@@ -26,9 +26,10 @@ Classify the task before designing:
 3. **Select the visual form** from data shape and reader task, not from library defaults. Read `references/chart-selection.md` when the choice is not obvious.
 4. **Apply analytical design checks**: comparison, causality, multivariate detail, words-numbers integration, evidence quality, layering, and micro/macro reading. Read `references/analytical-design.md` for dense dashboards, explanatory visuals, sparklines, or critique.
 5. **Remove chartjunk and distortion**: 3D, decorative gradients, heavy grids, detached legends, rainbow sequential scales, redundant encodings, unjustified dual axes, and KPI tiles with no comparison.
-6. **Implement in the user's stack**. Prefer existing project chart libraries and design primitives. For web apps, read `references/web-implementation.md`.
-7. **Verify before finalizing**. For code changes, run the relevant build/test/lint command when available. For visual web changes, use a browser screenshot or equivalent render check when feasible.
-8. **Report tradeoffs plainly**: say what changed, what was verified, and any remaining uncertainty about data semantics or design intent.
+6. **Check data integrity** for sourced data, forecasts, analyst targets, or mixed actual/estimate datasets. Read `references/data-integrity.md`.
+7. **Implement in the user's stack**. Prefer existing project chart libraries and design primitives. For web apps, read `references/web-implementation.md`.
+8. **Verify before finalizing**. For code changes, run the relevant build/test/lint command when available. For visual web changes, use a browser screenshot or equivalent render check when feasible.
+9. **Report tradeoffs plainly**: say what changed, what was verified, and any remaining uncertainty about data semantics or design intent.
 
 ## Output Mode Guidance
 
@@ -52,5 +53,6 @@ Classify the task before designing:
 
 - `references/chart-selection.md`: choose a chart from data shape and reader task.
 - `references/analytical-design.md`: critique and improve analytical depth, causality, layering, micro/macro, sparklines, and evidence.
+- `references/data-integrity.md`: handle sources, estimates, transformations, missing forecast series, and public example caveats.
 - `references/integrity-checklist.md`: final checks for honesty, labels, accessibility, density, and output-specific quality.
 - `references/web-implementation.md`: Codex workflow for app integration, responsive behavior, interaction, and browser verification.

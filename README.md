@@ -1,53 +1,72 @@
 # Tufte Viz Codex
 
-Codex에서 정량 데이터 시각화를 설계, 비평, 구현할 때 쓰는 Tufte 스타일 스킬입니다.
+Codex skill for designing, critiquing, and implementing quantitative visualizations with Tufte-inspired analytical discipline.
 
-목표는 장식적인 차트가 아니라 비교가 잘 보이는 분석 화면입니다. 직접 라벨, 명확한 기준선, 실제/추정 구간 분리, 작은 배수, 스파크라인 표, 모바일 검증을 기본으로 둡니다.
+[한국어 README](README.ko.md)
+
+The goal is not decorative chart styling. The skill is optimized for analytical displays where comparisons, baselines, actual/estimate boundaries, labels, sources, and responsive behavior are explicit.
 
 This is an independent, unofficial skill. It is inspired by public ideas associated with analytical information design and is not affiliated with, endorsed by, or sponsored by Edward Tufte, Graphics Press, OpenAI, Samsung, Tesla, Yahoo Finance, StockAnalysis, S&P Global, or KB Securities.
 
 The included company examples are illustrative visual-design examples only. They are not investment research, financial advice, or a recommendation to buy or sell securities.
 
-## 설치
+## Install
 
-이 repo를 Codex skills 디렉터리에 clone합니다.
+Clone this repo into a Codex skills directory:
 
 ```bash
 git clone https://github.com/iamxoghks/tufte-viz-codex.git ~/.codex/skills/tufte-viz-codex
 ```
 
-스킬 진입점은 [`SKILL.md`](SKILL.md)입니다.
+The skill entrypoint is [`SKILL.md`](SKILL.md).
 
-## 이 스킬이 다루는 기능
+## What This Skill Covers
 
-- 데이터 모양과 독자 질문에 맞는 차트 선택
-- 같은 단위 지표의 grouped bar
-- 다른 단위 지표의 분리 패널
-- 실제값과 예측/추정값의 시각적 분리
-- 단위가 다른 지표를 비교하는 normalized index
-- 시작점과 끝점을 직접 비교하는 slopegraph
-- 관계를 보는 scatterplot
-- 고점/기준점 대비 하락폭을 정렬하는 dot plot
-- 값과 추세를 한 줄에 넣는 sparkline table
-- 넓은 메인 차트와 작은 반복 패널의 모바일 동작 분리
+- Chart selection from data shape and reader task.
+- Same-unit grouped bars and grouped dots.
+- Separate panels for unlike units or rates.
+- Visual separation of actuals, estimates, targets, and assumptions.
+- Data-integrity checks for sourced and forecasted data.
+- Normalized index charts for unlike units.
+- Slopegraphs for direct before/after comparison.
+- Scatterplots for relationship questions.
+- Dot plots for ranked distance from a peak, target, or benchmark.
+- Sparkline tables for dense value plus trend reading.
+- Mobile behavior that treats wide primary charts and compact repeated panels differently.
+- Static HTML verification through `scripts/verify-html.js`.
 
-아래 코드 조각은 README 설명용으로 축약했습니다. 전체 실행 가능한 예제는 `examples/`의 HTML 파일에 있습니다.
+The snippets below are shortened for documentation. Full runnable examples live in `examples/`.
 
-## 예시 1: 삼성전자 재무/예측 화면
+## Templates
 
-질문: 삼성전자의 주가, 매출, 영업이익, 영업이익률이 2023년 저점 이후 어떻게 바뀌었고, 확인 가능한 추정치는 어디까지인가?
+Use these as starting points for new static HTML artifacts:
 
-전체 예제: [`examples/samsung-financial-forecast.html`](examples/samsung-financial-forecast.html)
+- [`examples/templates/financial-actuals-estimates.html`](examples/templates/financial-actuals-estimates.html)
+- [`examples/templates/visualization-lab.html`](examples/templates/visualization-lab.html)
+- [`examples/templates/sparkline-table.html`](examples/templates/sparkline-table.html)
+- [`examples/templates/small-multiples.html`](examples/templates/small-multiples.html)
+
+Run the verifier against a generated HTML file when Playwright is available:
+
+```bash
+node scripts/verify-html.js examples/templates/visualization-lab.html
+```
+
+## Example 1: Samsung Financial Forecast
+
+Question: after Samsung Electronics' 2023 trough, how did stock price, revenue, operating income, and operating margin change, and which sourced estimates are available?
+
+Full example: [`examples/samsung-financial-forecast.html`](examples/samsung-financial-forecast.html)
 
 ![Samsung combined bars](examples/assets/samsung-combined-bars.png)
 
-### 사용한 기능
+### Features Used
 
-- **같은 단위 결합**: 매출과 영업이익은 모두 조 원 단위라 한 패널에서 grouped bar로 표시.
-- **다른 단위 분리**: 영업이익률은 비율이라 금액 막대와 분리.
-- **추정 구간 분리**: 2026-2027 추정치는 색과 구획으로 실제값과 분리.
-- **직접 라벨**: 중요한 값은 범례나 tooltip 대신 막대/점 가까이에 표시.
-- **모바일 fallback**: 넓은 보고서형 차트는 좁은 화면에서 가로 스크롤 허용.
+- **Same-unit grouping**: revenue and operating income are both trillion KRW, so they share a grouped-bar panel.
+- **Separate-unit panel**: operating margin is a percentage, so it is separated from money bars.
+- **Forecast boundary**: 2026-2027 estimates are visually separated from actuals.
+- **Direct labels**: important values are labeled next to bars and points instead of being hidden in tooltips.
+- **Mobile fallback**: the wide report chart allows horizontal scroll on narrow screens.
 
 ```js
 const yMoney = scale([0, 820], [moneyBottom, moneyTop]);
@@ -63,19 +82,19 @@ drawLine(actuals.map(d => [x(d.year), yMargin(d.margin)]));
 drawForecastRegion({ from: 2026, to: 2027 });
 ```
 
-## 예시 2: TSLA 전체 대시보드
+## Example 2: TSLA Dashboard
 
-질문: TSLA의 10년 주가, 매출, 영업이익, 마진, 인도량을 한 화면에서 보고, 같은 데이터로 여러 분석 질문을 어떻게 바꿔 물을 수 있는가?
+Question: how can one TSLA dataset answer several different analytical questions about price, revenue, operating income, margin, and deliveries?
 
-전체 예제: [`examples/tsla-visualization-lab.html`](examples/tsla-visualization-lab.html)
+Full example: [`examples/tsla-visualization-lab.html`](examples/tsla-visualization-lab.html)
 
 ![TSLA full dashboard](examples/assets/tsla-full-dashboard.png)
 
-### 메인 차트에서 사용한 기능
+### Primary Chart Features
 
-- **주가 line chart + 목표가 marker**: 실제 종가와 평균 목표가를 분리. 목표가는 주가 예측선이 아니므로 붉은 점과 점선으로만 표시.
-- **재무 grouped bar + margin panel**: 매출/영업이익은 달러 단위라 한 패널, 영업이익률은 별도 패널.
-- **인도량 bar chart**: 실제 인도량만 표시해 생산/수요 사이클을 추정치와 섞지 않음.
+- **Price line plus target marker**: actual adjusted closes are shown as a line; analyst target is a separate marker, not a future price prediction line.
+- **Financial grouped bars plus margin panel**: revenue and operating income share a dollar scale; operating margin is separated into a lower percentage panel.
+- **Delivery bars**: actual deliveries are kept separate so the production/demand cycle is not mixed with unavailable estimates.
 
 ```js
 const actual = priceData.filter(d => d.type === "actual");
@@ -97,27 +116,27 @@ svg.appendChild(el("line", {
 }));
 ```
 
-## 예시 3: Visualization Lab
+## Example 3: Visualization Lab
 
-같은 TSLA 데이터에 스킬의 여러 시각화 패턴을 적용한 섹션입니다.
+The lab applies several chart patterns to the same TSLA data.
 
 ![TSLA visualization lab](examples/assets/tsla-visualization-lab.png)
 
 ### Normalized Index
 
-단위는 다르지만 “같은 출발점에서 얼마나 커졌나”를 보고 싶을 때 씁니다.
+Use when units differ but the reader needs relative growth from a shared baseline.
 
 ```js
 const series = [
-  { name: "주가", values: actual.map(d => priceByYear.get(d.year) / priceByYear.get(2016) * 100) },
-  { name: "매출", values: actual.map(d => d.revenue / actual[0].revenue * 100) },
-  { name: "인도량", values: actual.map(d => d.deliveries / actual[0].deliveries * 100) }
+  { name: "Price", values: actual.map(d => priceByYear.get(d.year) / priceByYear.get(2016) * 100) },
+  { name: "Revenue", values: actual.map(d => d.revenue / actual[0].revenue * 100) },
+  { name: "Deliveries", values: actual.map(d => d.deliveries / actual[0].deliveries * 100) }
 ];
 ```
 
 ### Slopegraph
 
-두 시점의 변화 방향과 크기를 직접 비교할 때 씁니다. TSLA 예제에서는 각 지표를 2020=100으로 정규화했습니다.
+Use for direct before/after comparison. In the TSLA example, each metric is indexed to 2020=100.
 
 ```js
 const indexed = metrics.map(m => ({
@@ -134,7 +153,7 @@ for (const m of indexed) {
 
 ### Scatterplot
 
-시간 순서가 아니라 관계를 볼 때 씁니다. 여기서는 인도량 확대가 영업이익률 개선으로 이어졌는지 확인합니다.
+Use when the question is about relationship, not time sequence. Here, deliveries are compared with operating margin.
 
 ```js
 const x = scale([0, 2.0], [margin.left, margin.left + innerW]);
@@ -151,20 +170,20 @@ for (const d of financialData.filter(d => d.type === "actual")) {
 
 ### Ranked Dot Plot
 
-모든 값이 같은 기준점 또는 고점 대비 차이일 때 씁니다. 막대보다 “순위와 기준점으로부터 거리”가 더 바로 보입니다.
+Use when each value is a distance from the same peak, target, or benchmark.
 
 ```js
 const rows = [
-  { name: "매출", value: last.revenue / maxRevenue - 1 },
-  { name: "인도량", value: last.deliveries / maxDeliveries - 1 },
-  { name: "영업이익", value: last.op / maxOperatingProfit - 1 },
-  { name: "영업이익률", value: last.margin - maxMargin }
+  { name: "Revenue", value: last.revenue / maxRevenue - 1 },
+  { name: "Deliveries", value: last.deliveries / maxDeliveries - 1 },
+  { name: "Operating income", value: last.op / maxOperatingProfit - 1 },
+  { name: "Operating margin", value: last.margin - maxMargin }
 ].sort((a, b) => a.value - b.value);
 ```
 
 ### Sparkline Table
 
-정확한 값과 작은 추세선을 동시에 보여야 할 때 씁니다. 전체 차트보다 작지만, 비교 밀도는 높습니다.
+Use when exact values and trend shape both matter.
 
 ```js
 function sparkline(values, width = 150, height = 28) {
@@ -174,9 +193,9 @@ function sparkline(values, width = 150, height = 28) {
 }
 ```
 
-## 모바일 반응형에서 얻은 교훈
+## Responsive Lesson
 
-넓은 메인 차트와 작은 lab 패널은 같은 모바일 규칙을 쓰면 안 됩니다.
+Wide primary charts and compact lab panels need different mobile rules.
 
 ```css
 .wide-chart svg {
@@ -192,10 +211,11 @@ function sparkline(values, width = 150, height = 28) {
 
 ![TSLA mobile lab](examples/assets/tsla-visualization-lab-mobile.png)
 
-## 참고 문서
+## References
 
 - [`references/chart-selection.md`](references/chart-selection.md)
 - [`references/analytical-design.md`](references/analytical-design.md)
+- [`references/data-integrity.md`](references/data-integrity.md)
 - [`references/integrity-checklist.md`](references/integrity-checklist.md)
 - [`references/web-implementation.md`](references/web-implementation.md)
 

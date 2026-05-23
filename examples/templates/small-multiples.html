@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Small Multiples Template</title>
+  <style>
+    :root { --paper: #fbfaf7; --ink: #171717; --muted: #6b665d; --rule: #c9c1b4; --faint: #e5e0d7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    main { width: min(1040px, calc(100vw - 32px)); margin: 32px auto; }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 52px); font-weight: 600; }
+    p { margin: 0 0 20px; color: var(--muted); }
+    .multiples { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .panel { min-width: 0; border-top: 1px solid var(--rule); padding-top: 10px; }
+    .panel h2 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+    svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .gridline { stroke: var(--faint); stroke-width: 0.7; }
+    .axis { stroke: var(--muted); stroke-width: 0.8; }
+    .tick { fill: var(--muted); font: 10px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    @media (max-width: 760px) { .multiples { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Small Multiples</h1>
+    <p>Use when same-unit measures have scale gaps or when each individual trend matters more than a single grouped panel.</p>
+    <div id="multiples" class="multiples"></div>
+  </main>
+  <script>
+    const data = [
+      { name: "Revenue", values: [7, 12, 21, 25, 32, 54, 81, 97, 98, 95] },
+      { name: "Operating income", values: [-0.7, -1.6, -0.4, -0.1, 2, 6.5, 13.7, 8.9, 7.1, 4.4] },
+      { name: "Deliveries", values: [0.08, 0.10, 0.25, 0.37, 0.5, 0.94, 1.31, 1.81, 1.79, 1.64] }
+    ];
+    function el(name, attrs = {}, children = []) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+      for (const child of children) node.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
+      return node;
+    }
+    function scale(domain, range) {
+      const [d0, d1] = domain;
+      const [r0, r1] = range;
+      return value => r0 + ((value - d0) / (d1 - d0 || 1)) * (r1 - r0);
+    }
+    function path(points) {
+      return points.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+    }
+    function chart(row) {
+      const width = 320, height = 160, margin = { top: 14, right: 18, bottom: 28, left: 34 };
+      const min = Math.min(0, ...row.values);
+      const max = Math.max(...row.values);
+      const x = scale([0, row.values.length - 1], [margin.left, width - margin.right]);
+      const y = scale([min, max], [height - margin.bottom, margin.top]);
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": `${row.name} small multiple` });
+      svg.appendChild(el("line", { x1: margin.left, x2: width - margin.right, y1: y(0), y2: y(0), class: "axis" }));
+      svg.appendChild(el("path", { d: path(row.values.map((v, i) => [x(i), y(v)])), fill: "none", stroke: "var(--ink)", "stroke-width": 1.5 }));
+      svg.appendChild(el("circle", { cx: x(row.values.length - 1), cy: y(row.values.at(-1)), r: 3.5, fill: "var(--ink)" }));
+      svg.appendChild(el("text", { x: margin.left, y: height - 8, class: "tick" }, ["start"]));
+      svg.appendChild(el("text", { x: width - margin.right, y: height - 8, "text-anchor": "end", class: "tick" }, ["end"]));
+      return svg;
+    }
+    const host = document.getElementById("multiples");
+    for (const row of data) {
+      const panel = document.createElement("section");
+      panel.className = "panel";
+      const title = document.createElement("h2");
+      title.textContent = row.name;
+      panel.appendChild(title);
+      panel.appendChild(chart(row));
+      host.appendChild(panel);
+    }
+  </script>
+</body>
+</html>

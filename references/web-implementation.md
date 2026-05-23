@@ -59,6 +59,7 @@ Weak interactions:
 6. Add states required by the app: loading, empty, error, dense, small viewport.
 7. Run build/test/lint if available.
 8. Start or reuse the dev server and verify visually when feasible.
+9. For standalone HTML examples in this repo, run `node scripts/verify-html.js <file>` when Playwright is available.
 
 ## Browser Verification
 
@@ -75,3 +76,18 @@ Look for:
 - No console errors.
 
 If using canvas or WebGL, include a basic pixel/nonblank check when practical.
+
+## Standalone HTML Verification Script
+
+This repo includes `scripts/verify-html.js` for generated examples and static HTML artifacts.
+
+It checks:
+
+- Desktop and mobile rendering.
+- Document horizontal overflow.
+- Presence of SVG charts.
+- Blank SVGs.
+- SVG text that renders outside its chart bounds.
+- Console and page errors.
+
+The script is deliberately conservative. If it flags an intentional mobile horizontal scroll, make sure only wide primary charts scroll and compact repeated panels still fit their containers.
