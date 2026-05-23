@@ -23,7 +23,9 @@ Date: 2026-05-24
 - Ran the skill creator `quick_validate.py` script in a temporary venv with `PyYAML`.
 - Result: `Skill is valid!`
 
-## Next
+## Publish And Install
 
-- Push this repo as a private GitHub repo named `iamxoghks/tufte-viz-codex`.
-- Install by cloning or copying this repo to `~/.codex/skills/tufte-viz-codex`.
+- Created private GitHub repo: `https://github.com/iamxoghks/tufte-viz-codex`.
+- Initial SSH push failed with `Permission denied (publickey)`, so the remote was switched to HTTPS and pushed through `gh` credential setup.
+- Installed locally by cloning the private repo to `/Users/iamxoghks/.codex/skills/tufte-viz-codex`.
+- Re-ran skill validation against the installed copy. Result: `Skill is valid!`
