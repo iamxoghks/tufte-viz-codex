@@ -22,6 +22,7 @@ Choose the display from the data shape and the reader's job. Do not choose by wh
 | One measure across categories | Sorted dot plot or horizontal bar | Pie, donut, unsorted vertical bars |
 | Time series, one measure | Line chart, sparkline, or indexed line | Bars for continuous time, decorative area fill |
 | Time series, many groups | Small multiples on shared scales | Many overlapping lines with a distant legend |
+| Time series, different units | Small multiples on the same time axis | Dual-axis overlay unless explicitly justified |
 | Before/after for many items | Slopegraph or paired dot plot | Clustered bars when change is the point |
 | Two numeric variables | Scatterplot with direct labels or annotations | Bubble chart unless size is essential and readable |
 | Distribution | Histogram, strip plot, beeswarm, or compact quantile display | Violin/box plot for non-technical audiences without explanation |
@@ -54,3 +55,4 @@ Choose the display from the data shape and the reader's job. Do not choose by wh
 - Can a sentence answer the question more clearly than a chart?
 - Is an extra visual channel adding information or only activity?
 - Would small multiples make the comparison easier than one crowded chart?
+- Am I mixing units or scales? If yes, split into aligned panels before reaching for a second axis.

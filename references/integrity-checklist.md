@@ -8,9 +8,11 @@ Run this before considering a visualization done.
 - Bar charts and filled areas use honest baselines.
 - Time intervals are consistent or explicitly marked.
 - Rates, percentages, and raw counts are not mixed without explanation.
+- Different units are separated into aligned panels unless a dual-axis display is explicitly justified and labeled.
 - Denominators are visible where they change the interpretation.
 - Area, angle, volume, and color are not used where position or length would be clearer.
 - Forecasts, estimates, missing values, and uncertainty are visually distinct.
+- Forecasts or analyst estimates are not styled as a continuation of audited actuals unless that continuity is the intended claim.
 
 ## Analytical Completeness
 
