@@ -30,8 +30,25 @@ git clone https://github.com/iamxoghks/tufte-viz-codex.git ~/.codex/skills/tufte
 - 고점/기준점 대비 하락폭을 정렬하는 dot plot
 - 값과 추세를 한 줄에 넣는 sparkline table
 - 넓은 메인 차트와 작은 반복 패널의 모바일 동작 분리
+- 출처/예측/목표가/변환을 확인하는 데이터 무결성 체크
+- `scripts/verify-html.js`를 통한 정적 HTML 렌더링 검증
 
 아래 코드 조각은 README 설명용으로 축약했습니다. 전체 실행 가능한 예제는 `examples/`의 HTML 파일에 있습니다.
+
+## 템플릿
+
+새 정적 HTML 산출물을 만들 때 시작점으로 쓸 수 있는 템플릿입니다.
+
+- [`examples/templates/financial-actuals-estimates.html`](examples/templates/financial-actuals-estimates.html)
+- [`examples/templates/visualization-lab.html`](examples/templates/visualization-lab.html)
+- [`examples/templates/sparkline-table.html`](examples/templates/sparkline-table.html)
+- [`examples/templates/small-multiples.html`](examples/templates/small-multiples.html)
+
+Playwright를 사용할 수 있으면 생성한 HTML을 검증합니다.
+
+```bash
+node scripts/verify-html.js examples/templates/visualization-lab.html
+```
 
 ## 예시 1: 삼성전자 재무/예측 화면
 
@@ -196,6 +213,7 @@ function sparkline(values, width = 150, height = 28) {
 
 - [`references/chart-selection.md`](references/chart-selection.md)
 - [`references/analytical-design.md`](references/analytical-design.md)
+- [`references/data-integrity.md`](references/data-integrity.md)
 - [`references/integrity-checklist.md`](references/integrity-checklist.md)
 - [`references/web-implementation.md`](references/web-implementation.md)
 
