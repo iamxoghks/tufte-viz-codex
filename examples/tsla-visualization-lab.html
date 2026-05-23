@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TSLA: 주가, 실적, 인도량</title>
+  <link rel="icon" href="data:," />
+  <style>
+    :root {
+      --paper: #fbfaf7;
+      --ink: #171717;
+      --muted: #68645d;
+      --faint: #e7e1d8;
+      --rule: #c8c0b4;
+      --forecast: #b3261e;
+      --stock: #315f72;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+      line-height: 1.45;
+    }
+
+    main {
+      width: min(1200px, calc(100vw - 32px));
+      margin: 36px auto 48px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+      gap: 28px;
+      align-items: end;
+      border-bottom: 1px solid var(--ink);
+      padding-bottom: 18px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      font-size: clamp(32px, 5vw, 60px);
+      line-height: 1.02;
+      font-weight: 600;
+      letter-spacing: 0;
+      margin: 0 0 10px;
+    }
+
+    .subtitle {
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .stamp, .axis, .tick, .source, table, .metric b, .metric strong {
+      font-family: "SF Mono", "Berkeley Mono", ui-monospace, monospace;
+    }
+
+    .stamp {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--rule);
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      margin: 0 0 24px;
+    }
+
+    .metric {
+      background: var(--paper);
+      padding: 14px 16px 16px;
+      min-height: 96px;
+    }
+
+    .metric b {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: clamp(19px, 2.2vw, 28px);
+      line-height: 1.05;
+      font-weight: 600;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 7px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 22px;
+      min-width: 0;
+    }
+
+    section {
+      border-top: 1px solid var(--rule);
+      padding-top: 14px;
+      min-width: 0;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(360px, 0.5fr) minmax(360px, 0.5fr);
+      align-items: baseline;
+      gap: 18px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      max-width: 760px;
+    }
+
+    .chart {
+      width: 100%;
+      max-width: 100%;
+      min-height: 260px;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    .axis { stroke: var(--muted); stroke-width: 0.8; }
+    .gridline { stroke: var(--faint); stroke-width: 0.7; }
+    .tick { fill: var(--muted); font-size: 11px; }
+    .label { fill: var(--ink); font-size: 12px; font-weight: 500; }
+    .value { fill: var(--ink); font-size: 11px; font-weight: 550; }
+    .source { fill: var(--muted); font-size: 10.5px; font-weight: 400; }
+    .annotation { fill: var(--muted); font-size: 11px; font-weight: 400; }
+
+    .table-wrap {
+      overflow-x: auto;
+      max-width: 100%;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 820px;
+      font-size: 12px;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: right;
+      border-bottom: 1px solid var(--faint);
+      white-space: nowrap;
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+    th { color: var(--muted); font-weight: 500; }
+    tr:last-child td { border-bottom: 0; }
+    .forecast-cell { color: var(--forecast); }
+
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .lab-panel {
+      min-width: 0;
+      border-top: 1px solid var(--faint);
+      padding-top: 10px;
+    }
+
+    .lab-panel h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .lab-panel p {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .lab-panel .chart {
+      min-height: 0;
+      overflow-x: hidden;
+    }
+
+    .spark-table td:nth-child(2) {
+      min-width: 170px;
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--rule);
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .checkitem {
+      background: var(--paper);
+      padding: 12px 14px;
+      min-height: 86px;
+    }
+
+    .checkitem b {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .checkitem span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--rule);
+      padding-top: 12px;
+    }
+
+    @media (max-width: 760px) {
+      main { width: min(100vw - 24px, 1200px); margin-top: 22px; }
+      header { grid-template-columns: 1fr; gap: 12px; }
+      .stamp { text-align: left; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .lab-grid { grid-template-columns: 1fr; }
+      .checklist { grid-template-columns: 1fr; }
+      .section-head { display: block; }
+      .note { margin-top: 4px; }
+      .wide-chart svg { width: 760px; max-width: none; }
+      .lab-panel .chart svg { width: 100%; max-width: 100%; }
+    }
+
+    @media (max-width: 460px) {
+      .summary { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>TSLA, 2016-2027</h1>
+        <p class="subtitle">10년 실제 주가·매출·영업이익·영업이익률·차량 인도량을 한 화면에 배치했다. 2026-2027 컨센서스와 목표가는 붉은 추정 구간으로 분리했다.</p>
+      </div>
+      <div class="stamp">NASDAQ: TSLA<br />달러, 십억 달러, 백만 대<br />작성 2026-05-24 KST</div>
+    </header>
+
+    <div class="summary">
+      <div class="metric">
+        <b>최근 주가</b>
+        <strong>$426.01</strong>
+        <span>2026-05-22 종가</span>
+      </div>
+      <div class="metric">
+        <b>2025 매출</b>
+        <strong>$94.8B</strong>
+        <span>2024년 대비 -2.9%</span>
+      </div>
+      <div class="metric">
+        <b>2025 영업이익률</b>
+        <strong>4.6%</strong>
+        <span>2022년 16.8%에서 하락</span>
+      </div>
+      <div class="metric">
+        <b>2025 인도량</b>
+        <strong>1.64M</strong>
+        <span>2년 연속 감소</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section>
+        <div class="section-head">
+          <h2>주가: 2020 재평가, 2022 조정, 2024-2026 재상승</h2>
+          <p class="note">연말 조정 종가를 연결하고 2026은 5월 22일 종가까지 표시했다. 붉은 점은 StockAnalysis/S&amp;P Global의 평균 12개월 목표가다.</p>
+        </div>
+        <div id="priceChart" class="chart wide-chart"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>실적: 매출과 영업이익은 같은 달러 단위, 마진은 별도 패널</h2>
+          <p class="note">같은 단위인 매출과 영업이익은 한 패널에서 묶고, 비율인 영업이익률은 분리했다. 공개 컨센서스가 확인되는 2026-2027 매출만 추정 구간에 표시했다.</p>
+        </div>
+        <div id="financialChart" class="chart wide-chart"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>차량 인도량: 2023 고점 이후 감소</h2>
+          <p class="note">실제 인도량만 표시했다. 가격·마진과 달리 추정치를 붙이지 않아 실제 생산/수요 사이클만 읽게 했다.</p>
+        </div>
+        <div id="deliveryChart" class="chart wide-chart"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Visualization Lab: 같은 데이터로 다른 질문에 답하기</h2>
+          <p class="note">스킬의 남은 주요 패턴을 한 번에 시험한다. 정규화, 변화 비교, 관계, 순위, 스파크라인 표, 비평 체크리스트를 같은 TSLA 데이터에 적용했다.</p>
+        </div>
+        <div class="lab-grid">
+          <div class="lab-panel">
+            <h3>2016=100 정규화 지수</h3>
+            <p>단위가 다른 주가·매출·인도량을 같은 출발점에서 비교.</p>
+            <div id="indexChart" class="chart"></div>
+          </div>
+          <div class="lab-panel">
+            <h3>2020 → 2025 slopegraph</h3>
+            <p>성장기 이후 5년 변화의 방향과 크기를 직접 비교.</p>
+            <div id="slopeChart" class="chart"></div>
+          </div>
+          <div class="lab-panel">
+            <h3>인도량과 영업이익률 산점도</h3>
+            <p>규모 확대가 수익성으로 이어졌는지 확인.</p>
+            <div id="scatterChart" class="chart"></div>
+          </div>
+          <div class="lab-panel">
+            <h3>2025 지표별 고점 대비 하락</h3>
+            <p>정렬 dot plot으로 어떤 지표가 고점에서 가장 많이 내려왔는지 본다.</p>
+            <div id="dotChart" class="chart"></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>스파크라인 표: 값, 추세, 고점/저점을 한 줄에</h2>
+          <p class="note">정확한 값과 작은 추세선을 같이 둔 dense table 예시다. 전체 차트보다 작지만 비교 밀도는 높다.</p>
+        </div>
+        <div class="table-wrap">
+          <table class="spark-table">
+            <thead>
+              <tr>
+                <th>지표</th>
+                <th>2016-2025 추세</th>
+                <th>2016</th>
+                <th>2025</th>
+                <th>고점</th>
+                <th>저점</th>
+              </tr>
+            </thead>
+            <tbody id="sparkRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>스킬 체크리스트 적용 결과</h2>
+          <p class="note">이번 TSLA 페이지 자체를 비평 모드로 점검했다. 남은 제약은 자료 출처와 예측치 범위에 있다.</p>
+        </div>
+        <div class="checklist">
+          <div class="checkitem"><b>같은 단위 묶기</b><span>매출과 영업이익은 같은 달러 단위라 한 패널에 묶고, 마진은 별도 패널로 분리했다.</span></div>
+          <div class="checkitem"><b>예측치 처리</b><span>매출 컨센서스만 확인되어 영업이익·마진·인도량 추정치는 만들지 않았다.</span></div>
+          <div class="checkitem"><b>비교 기준</b><span>2016=100 지수와 2020→2025 slopegraph로 “무엇과 비교하는가”를 명시했다.</span></div>
+          <div class="checkitem"><b>관계 확인</b><span>인도량-마진 산점도로 성장 규모와 수익성의 관계를 별도로 확인한다.</span></div>
+          <div class="checkitem"><b>정확한 값</b><span>하단 숫자 표와 스파크라인 표가 차트의 요약성을 보완한다.</span></div>
+          <div class="checkitem"><b>남은 제약</b><span>2026-2027은 매출 컨센서스 중심이며, 목표가는 실제 주가 예측선이 아니다.</span></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>숫자 표</h2>
+          <p class="note">정확한 값 확인용. 추정치는 붉은색으로 표시했다.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>연도</th>
+                <th>주가</th>
+                <th>매출</th>
+                <th>영업이익</th>
+                <th>영업이익률</th>
+                <th>인도량</th>
+                <th>구분</th>
+              </tr>
+            </thead>
+            <tbody id="dataRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      출처: Yahoo Finance/yfinance 조정 월간 종가, Tesla Form 10-K 및 StockAnalysis/S&amp;P Global Market Intelligence 연간 재무제표, Tesla IR 연간 차량 인도량, StockAnalysis 애널리스트 전망. 이 자료는 시각화 예시이며 투자 조언이 아니다.
+    </footer>
+  </main>
+
+  <script>
+    const priceData = [
+      { year: 2016, close: 14.25, type: "actual" },
+      { year: 2017, close: 20.76, type: "actual" },
+      { year: 2018, close: 22.19, type: "actual" },
+      { year: 2019, close: 27.89, type: "actual" },
+      { year: 2020, close: 235.22, type: "actual" },
+      { year: 2021, close: 352.26, type: "actual" },
+      { year: 2022, close: 123.18, type: "actual" },
+      { year: 2023, close: 248.48, type: "actual" },
+      { year: 2024, close: 403.84, type: "actual" },
+      { year: 2025, close: 449.72, type: "actual" },
+      { year: 2026.39, close: 426.01, type: "actual" },
+      { year: 2027.39, close: 411.89, type: "target", label: "평균 $412" }
+    ];
+
+    const financialData = [
+      { year: 2016, revenue: 7.00, op: -0.67, margin: -9.5, deliveries: 0.076, type: "actual" },
+      { year: 2017, revenue: 11.76, op: -1.63, margin: -13.9, deliveries: 0.103, type: "actual" },
+      { year: 2018, revenue: 21.46, op: -0.39, margin: -1.8, deliveries: 0.245, type: "actual" },
+      { year: 2019, revenue: 24.58, op: -0.07, margin: -0.3, deliveries: 0.368, type: "actual" },
+      { year: 2020, revenue: 31.54, op: 1.99, margin: 6.3, deliveries: 0.500, type: "actual" },
+      { year: 2021, revenue: 53.82, op: 6.52, margin: 12.1, deliveries: 0.936, type: "actual" },
+      { year: 2022, revenue: 81.46, op: 13.66, margin: 16.8, deliveries: 1.314, type: "actual" },
+      { year: 2023, revenue: 96.77, op: 8.89, margin: 9.2, deliveries: 1.809, type: "actual" },
+      { year: 2024, revenue: 97.69, op: 7.08, margin: 7.2, deliveries: 1.789, type: "actual" },
+      { year: 2025, revenue: 94.83, op: 4.36, margin: 4.6, deliveries: 1.636, type: "actual" },
+      { year: 2026, revenue: 103.26, op: null, margin: null, deliveries: null, type: "estimate" },
+      { year: 2027, revenue: 118.37, op: null, margin: null, deliveries: null, type: "estimate" }
+    ];
+
+    function el(name, attrs = {}, children = []) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+      for (const child of children) node.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
+      return node;
+    }
+
+    function scale(domain, range) {
+      const [d0, d1] = domain;
+      const [r0, r1] = range;
+      return value => r0 + ((value - d0) / (d1 - d0)) * (r1 - r0);
+    }
+
+    function path(points) {
+      return points.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+    }
+
+    function drawPriceChart() {
+      const width = 1140, height = 340;
+      const margin = { top: 30, right: 84, bottom: 60, left: 70 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "TSLA 2016년부터 2026년까지 주가와 목표가" });
+      const x = scale([2016, 2027.4], [margin.left, margin.left + innerW]);
+      const y = scale([0, 540], [margin.top + innerH, margin.top]);
+      const actual = priceData.filter(d => d.type === "actual");
+      const target = priceData.find(d => d.type === "target");
+
+      for (const tick of [0, 100, 300, 500]) {
+        const yy = y(tick);
+        svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: "gridline" }));
+        svg.appendChild(el("text", { x: margin.left - 10, y: yy + 4, "text-anchor": "end", class: "tick" }, [`$${tick}`]));
+      }
+
+      svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: y(0), y2: y(0), class: "axis" }));
+      svg.appendChild(el("path", { d: path(actual.map(d => [x(d.year), y(d.close)])), fill: "none", stroke: "var(--stock)", "stroke-width": 2 }));
+      for (const d of actual) svg.appendChild(el("circle", { cx: x(d.year), cy: y(d.close), r: 3.8, fill: "var(--stock)" }));
+
+      for (const yr of [2016, 2018, 2020, 2022, 2024, 2026, 2027]) {
+        svg.appendChild(el("text", { x: x(yr), y: height - 28, "text-anchor": "middle", class: "tick" }, [String(yr)]));
+      }
+
+      const last = actual[actual.length - 1];
+      svg.appendChild(el("text", { x: x(last.year) + 8, y: y(last.close) + 4, class: "value" }, [`$${last.close.toFixed(0)}`]));
+      svg.appendChild(el("text", { x: x(2020) - 22, y: y(235.22) - 28, "text-anchor": "middle", class: "annotation" }, ["2020년 주가 재평가"]));
+      svg.appendChild(el("text", { x: x(2022) + 28, y: y(123.18) + 28, "text-anchor": "middle", class: "annotation" }, ["2022년 조정"]));
+      svg.appendChild(el("line", { x1: x(last.year), x2: x(target.year), y1: y(last.close), y2: y(target.close), stroke: "var(--forecast)", "stroke-width": 1.4, "stroke-dasharray": "4 5" }));
+      svg.appendChild(el("circle", { cx: x(target.year), cy: y(target.close), r: 5, fill: "var(--forecast)" }));
+      svg.appendChild(el("text", { x: x(target.year) + 8, y: y(target.close) + 4, class: "value", fill: "var(--forecast)" }, [target.label]));
+      svg.appendChild(el("text", { x: margin.left, y: height - 6, class: "source" }, ["주가: Yahoo Finance/yfinance 조정 종가. 목표가: StockAnalysis/S&P Global 평균 12개월 목표가, 실제 주가 예측선이 아님."]));
+      document.getElementById("priceChart").appendChild(svg);
+    }
+
+    function drawFinancialChart() {
+      const width = 1140, height = 470;
+      const margin = { top: 56, right: 36, bottom: 58, left: 70 };
+      const innerW = width - margin.left - margin.right;
+      const revenuePanelH = 200;
+      const marginPanelH = 112;
+      const panelGap = 54;
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "TSLA 매출과 영업이익 막대, 영업이익률 선" });
+      const x = scale([2015.5, 2027.5], [margin.left, margin.left + innerW]);
+      const yMoney = scale([-20, 130], [margin.top + revenuePanelH, margin.top]);
+      const marginTop = margin.top + revenuePanelH + panelGap;
+      const yMargin = scale([-20, 20], [marginTop + marginPanelH, marginTop]);
+      const revenueBarW = 28;
+      const opBarW = 18;
+      const actual = financialData.filter(d => d.type === "actual");
+      const estimate = financialData.filter(d => d.type === "estimate");
+
+      svg.appendChild(el("text", { x: margin.left, y: margin.top - 28, class: "label" }, ["매출 | 영업이익 (십억 달러)"]));
+      svg.appendChild(el("rect", { x: margin.left, y: margin.top - 18, width: 16, height: 8, fill: "rgba(23,23,23,0.15)", stroke: "var(--ink)", "stroke-width": 0.7 }));
+      svg.appendChild(el("text", { x: margin.left + 22, y: margin.top - 10, class: "annotation" }, ["매출"]));
+      svg.appendChild(el("rect", { x: margin.left + 68, y: margin.top - 18, width: 12, height: 8, fill: "rgba(23,23,23,0.42)", stroke: "var(--ink)", "stroke-width": 0.7 }));
+      svg.appendChild(el("text", { x: margin.left + 86, y: margin.top - 10, class: "annotation" }, ["영업이익"]));
+
+      for (const tick of [-20, 0, 50, 100]) {
+        const yy = yMoney(tick);
+        svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: tick === 0 ? "axis" : "gridline" }));
+        svg.appendChild(el("text", { x: margin.left - 10, y: yy + 4, "text-anchor": "end", class: "tick" }, [`$${tick}B`]));
+      }
+      svg.appendChild(el("line", { x1: x(2025.5), x2: x(2025.5), y1: margin.top, y2: marginTop + marginPanelH, stroke: "var(--rule)", "stroke-width": 1, "stroke-dasharray": "3 4" }));
+      svg.appendChild(el("text", { x: x(2025.44), y: margin.top - 10, "text-anchor": "end", class: "annotation" }, ["실제"]));
+      svg.appendChild(el("text", { x: x(2025.56), y: margin.top - 10, class: "annotation" }, ["추정"]));
+
+      for (const d of financialData) {
+        const isEstimate = d.type === "estimate";
+        const stroke = isEstimate ? "var(--forecast)" : "var(--ink)";
+        svg.appendChild(el("rect", {
+          x: x(d.year) - revenueBarW - 3,
+          y: yMoney(Math.max(0, d.revenue)),
+          width: revenueBarW,
+          height: Math.abs(yMoney(d.revenue) - yMoney(0)),
+          fill: isEstimate ? "rgba(179,38,30,0.16)" : "rgba(23,23,23,0.15)",
+          stroke,
+          "stroke-width": isEstimate ? 1.2 : 0.8
+        }));
+        if (d.op != null) {
+          svg.appendChild(el("rect", {
+            x: x(d.year) + 5,
+            y: d.op >= 0 ? yMoney(d.op) : yMoney(0),
+            width: opBarW,
+            height: Math.abs(yMoney(d.op) - yMoney(0)),
+            fill: "rgba(23,23,23,0.42)",
+            stroke,
+            "stroke-width": 0.8
+          }));
+        }
+      }
+
+      for (const d of financialData) {
+        const isEstimate = d.type === "estimate";
+        if ([2016, 2020, 2022, 2025, 2027].includes(d.year)) {
+          svg.appendChild(el("text", { x: x(d.year) - revenueBarW / 2 - 3, y: yMoney(d.revenue) - 7, "text-anchor": "middle", class: "value", fill: isEstimate ? "var(--forecast)" : "var(--ink)" }, [`$${Math.round(d.revenue)}B`]));
+          if (d.op != null) {
+            svg.appendChild(el("text", {
+              x: x(d.year) + opBarW + 9,
+              y: d.op < 0 ? yMoney(d.op) + 16 : yMoney(d.op) - 8,
+              class: "value",
+              fill: "var(--ink)"
+            }, [`$${d.op.toFixed(d.op < 1 && d.op > -1 ? 1 : 0)}B`]));
+          }
+        }
+      }
+
+      svg.appendChild(el("text", { x: margin.left, y: marginTop - 12, class: "label" }, ["영업이익률 (%)"]));
+      for (const tick of [-20, 0, 10, 20]) {
+        const yy = yMargin(tick);
+        svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: tick === 0 ? "axis" : "gridline" }));
+        svg.appendChild(el("text", { x: margin.left - 10, y: yy + 4, "text-anchor": "end", class: "tick" }, [`${tick}%`]));
+      }
+      svg.appendChild(el("path", { d: path(actual.map(d => [x(d.year), yMargin(d.margin)])), fill: "none", stroke: "var(--ink)", "stroke-width": 1.8 }));
+      for (const d of financialData) {
+        const isEstimate = d.type === "estimate";
+        if (d.margin == null) continue;
+        svg.appendChild(el("circle", { cx: x(d.year), cy: yMargin(d.margin), r: isEstimate ? 4.2 : 3.6, fill: isEstimate ? "var(--forecast)" : "var(--ink)" }));
+        if ([2017, 2022, 2025, 2027].includes(d.year)) {
+          svg.appendChild(el("text", { x: x(d.year) + 8, y: yMargin(d.margin) - 7, class: "value", fill: isEstimate ? "var(--forecast)" : "var(--ink)" }, [`${d.margin.toFixed(1)}%`]));
+        }
+      }
+      for (const yr of [2016, 2018, 2020, 2022, 2024, 2026, 2027]) {
+        svg.appendChild(el("text", { x: x(yr), y: height - 28, "text-anchor": "middle", class: "tick" }, [String(yr) + (yr >= 2026 ? "E" : "")]));
+      }
+      svg.appendChild(el("text", { x: margin.left, y: height - 6, class: "source" }, ["재무: Tesla 10-K 및 StockAnalysis. 2026-2027은 공개 확인 가능한 매출 컨센서스만 표시, 영업이익/마진은 추정하지 않음."]));
+      document.getElementById("financialChart").appendChild(svg);
+    }
+
+    function drawDeliveryChart() {
+      const width = 1140, height = 270;
+      const margin = { top: 28, right: 42, bottom: 58, left: 70 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "TSLA 2016년부터 2025년까지 차량 인도량" });
+      const data = financialData.filter(d => d.type === "actual");
+      const x = scale([2015.5, 2025.5], [margin.left, margin.left + innerW]);
+      const y = scale([0, 2.0], [margin.top + innerH, margin.top]);
+      const barW = 48;
+      for (const tick of [0, 0.5, 1.0, 1.5, 2.0]) {
+        const yy = y(tick);
+        svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: tick === 0 ? "axis" : "gridline" }));
+        svg.appendChild(el("text", { x: margin.left - 10, y: yy + 4, "text-anchor": "end", class: "tick" }, [`${tick.toFixed(1)}M`]));
+      }
+      for (const d of data) {
+        svg.appendChild(el("rect", { x: x(d.year) - barW / 2, y: y(d.deliveries), width: barW, height: y(0) - y(d.deliveries), fill: "rgba(23,23,23,0.18)", stroke: "var(--ink)", "stroke-width": 0.8 }));
+        if ([2016, 2020, 2023, 2025].includes(d.year)) {
+          svg.appendChild(el("text", { x: x(d.year), y: y(d.deliveries) - 7, "text-anchor": "middle", class: "value" }, [`${d.deliveries.toFixed(2)}M`]));
+        }
+      }
+      for (const yr of [2016, 2018, 2020, 2022, 2024, 2025]) {
+        svg.appendChild(el("text", { x: x(yr), y: height - 28, "text-anchor": "middle", class: "tick" }, [String(yr)]));
+      }
+      svg.appendChild(el("text", { x: x(2023), y: y(1.809) - 24, "text-anchor": "middle", class: "annotation" }, ["2023 고점"]));
+      svg.appendChild(el("text", { x: margin.left, y: height - 6, class: "source" }, ["인도량: Tesla IR 연간 production and deliveries 발표."]));
+      document.getElementById("deliveryChart").appendChild(svg);
+    }
+
+    function drawIndexChart() {
+      const width = 540, height = 260;
+      const margin = { top: 28, right: 70, bottom: 46, left: 58 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "TSLA 주가 매출 인도량 2016년 기준 정규화 지수" });
+      const actual = financialData.filter(d => d.type === "actual");
+      const priceByYear = new Map(priceData.filter(d => d.type === "actual").map(d => [Math.floor(d.year), d.close]));
+      const series = [
+        { name: "주가", values: actual.map(d => ({ year: d.year, value: priceByYear.get(d.year) / priceByYear.get(2016) * 100 })), stroke: "var(--stock)" },
+        { name: "매출", values: actual.map(d => ({ year: d.year, value: d.revenue / actual[0].revenue * 100 })), stroke: "var(--ink)" },
+        { name: "인도량", values: actual.map(d => ({ year: d.year, value: d.deliveries / actual[0].deliveries * 100 })), stroke: "var(--forecast)" }
+      ];
+      const x = scale([2016, 2025], [margin.left, margin.left + innerW]);
+      const y = scale([0, 2600], [margin.top + innerH, margin.top]);
+      for (const tick of [100, 1000, 2000]) {
+        const yy = y(tick);
+        svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: "gridline" }));
+        svg.appendChild(el("text", { x: margin.left - 8, y: yy + 4, "text-anchor": "end", class: "tick" }, [String(tick)]));
+      }
+      svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: y(100), y2: y(100), class: "axis" }));
+      for (const s of series) {
+        svg.appendChild(el("path", { d: path(s.values.map(d => [x(d.year), y(d.value)])), fill: "none", stroke: s.stroke, "stroke-width": 1.8 }));
+        const last = s.values[s.values.length - 1];
+        svg.appendChild(el("text", { x: x(last.year) + 8, y: y(last.value) + 4, class: "value", fill: s.stroke }, [`${s.name} ${Math.round(last.value)}`]));
+      }
+      for (const yr of [2016, 2019, 2022, 2025]) svg.appendChild(el("text", { x: x(yr), y: height - 20, "text-anchor": "middle", class: "tick" }, [String(yr)]));
+      svg.appendChild(el("text", { x: margin.left, y: height - 4, class: "source" }, ["2016=100. 단위가 다른 지표를 같은 출발점으로 비교."]));
+      document.getElementById("indexChart").appendChild(svg);
+    }
+
+    function drawSlopeChart() {
+      const width = 540, height = 260;
+      const margin = { top: 30, right: 106, bottom: 34, left: 42 };
+      const innerW = width - margin.left - margin.right;
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "TSLA 2020년과 2025년 지표 변화 slopegraph" });
+      const metrics = [
+        { name: "매출", a: 31.54, b: 94.83, unit: "$B" },
+        { name: "영업이익", a: 1.99, b: 4.36, unit: "$B" },
+        { name: "인도량", a: 0.500, b: 1.636, unit: "M" },
+        { name: "영업이익률", a: 6.3, b: 4.6, unit: "%" }
+      ];
+      const indexed = metrics.map(m => ({ ...m, start: 100, end: m.b / m.a * 100 }));
+      const y = scale([0, 340], [height - 44, margin.top]);
+      const x0 = margin.left + innerW * 0.2;
+      const x1 = margin.left + innerW * 0.74;
+      svg.appendChild(el("text", { x: x0, y: 18, "text-anchor": "middle", class: "label" }, ["2020=100"]));
+      svg.appendChild(el("text", { x: x1, y: 18, "text-anchor": "middle", class: "label" }, ["2025"]));
+      for (const m of indexed) {
+        const stroke = m.end < 100 ? "var(--forecast)" : "var(--ink)";
+        svg.appendChild(el("line", { x1: x0, x2: x1, y1: y(m.start), y2: y(m.end), stroke, "stroke-width": 1.4 }));
+        svg.appendChild(el("circle", { cx: x0, cy: y(m.start), r: 3.5, fill: stroke }));
+        svg.appendChild(el("circle", { cx: x1, cy: y(m.end), r: 3.5, fill: stroke }));
+        svg.appendChild(el("text", { x: x1 + 10, y: y(m.end) + 4, class: "value", fill: stroke }, [`${m.name} ${m.b}${m.unit}`]));
+      }
+      svg.appendChild(el("text", { x: margin.left, y: height - 8, class: "source" }, ["각 지표의 2020 값을 100으로 놓은 변화 비교."]));
+      document.getElementById("slopeChart").appendChild(svg);
+    }
+
+    function drawScatterChart() {
+      const width = 540, height = 260;
+      const margin = { top: 26, right: 34, bottom: 48, left: 58 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "TSLA 인도량과 영업이익률 산점도" });
+      const data = financialData.filter(d => d.type === "actual");
+      const x = scale([0, 2.0], [margin.left, margin.left + innerW]);
+      const y = scale([-16, 20], [margin.top + innerH, margin.top]);
+      for (const tick of [0, 0.5, 1, 1.5, 2]) svg.appendChild(el("text", { x: x(tick), y: height - 24, "text-anchor": "middle", class: "tick" }, [String(tick)]));
+      for (const tick of [-10, 0, 10, 20]) {
+        const yy = y(tick);
+        svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: tick === 0 ? "axis" : "gridline" }));
+        svg.appendChild(el("text", { x: margin.left - 8, y: yy + 4, "text-anchor": "end", class: "tick" }, [`${tick}%`]));
+      }
+      svg.appendChild(el("text", { x: margin.left + innerW, y: height - 4, "text-anchor": "end", class: "source" }, ["x: 인도량(M), y: 영업이익률"]));
+      for (const d of data) {
+        svg.appendChild(el("circle", { cx: x(d.deliveries), cy: y(d.margin), r: 4, fill: d.margin < 0 ? "var(--forecast)" : "var(--ink)" }));
+        if (d.year === 2017) svg.appendChild(el("text", { x: x(d.deliveries) + 9, y: y(d.margin) + 17, class: "value" }, [String(d.year)]));
+        if (d.year === 2022) svg.appendChild(el("text", { x: x(d.deliveries) + 8, y: y(d.margin) - 11, class: "value" }, [String(d.year)]));
+        if (d.year === 2025) svg.appendChild(el("text", { x: x(d.deliveries) + 10, y: y(d.margin) + 4, class: "value" }, [String(d.year)]));
+      }
+      document.getElementById("scatterChart").appendChild(svg);
+    }
+
+    function drawDotChart() {
+      const width = 540, height = 260;
+      const margin = { top: 24, right: 48, bottom: 42, left: 132 };
+      const innerW = width - margin.left - margin.right;
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "TSLA 2025년 지표별 고점 대비 하락 dot plot" });
+      const last = financialData.find(d => d.year === 2025);
+      const actual = financialData.filter(d => d.type === "actual");
+      const priceValues = priceData.filter(d => d.type === "actual" && d.year <= 2025).map(d => d.close);
+      const rows = [
+        { name: "주가", value: (lastPrice() / Math.max(...priceValues) - 1) * 100, suffix: "%" },
+        { name: "매출", value: (last.revenue / Math.max(...actual.map(d => d.revenue)) - 1) * 100, suffix: "%" },
+        { name: "인도량", value: (last.deliveries / Math.max(...actual.map(d => d.deliveries)) - 1) * 100, suffix: "%" },
+        { name: "영업이익", value: (last.op / Math.max(...actual.map(d => d.op)) - 1) * 100, suffix: "%" },
+        { name: "영업이익률", value: last.margin - Math.max(...actual.map(d => d.margin)), suffix: "pp" }
+      ].sort((a, b) => a.value - b.value);
+      function lastPrice() { return priceData.find(d => d.year === 2025).close; }
+      const x = scale([-75, 5], [margin.left, margin.left + innerW]);
+      svg.appendChild(el("line", { x1: x(0), x2: x(0), y1: margin.top, y2: height - margin.bottom, class: "axis" }));
+      svg.appendChild(el("text", { x: x(0), y: height - 18, "text-anchor": "middle", class: "tick" }, ["고점"]));
+      rows.forEach((d, i) => {
+        const y = margin.top + 22 + i * 34;
+        const color = d.value < -20 ? "var(--forecast)" : "var(--ink)";
+        svg.appendChild(el("line", { x1: x(0), x2: x(d.value), y1: y, y2: y, stroke: "var(--rule)", "stroke-width": 1 }));
+        svg.appendChild(el("circle", { cx: x(d.value), cy: y, r: 5, fill: color }));
+        svg.appendChild(el("text", { x: margin.left - 12, y: y + 4, "text-anchor": "end", class: "label" }, [d.name]));
+        const valueX = x(d.value);
+        const valueOnRight = valueX < margin.left + 72;
+        svg.appendChild(el("text", {
+          x: valueX + (valueOnRight ? 10 : -8),
+          y: y + 4,
+          "text-anchor": valueOnRight ? "start" : "end",
+          class: "value",
+          fill: color
+        }, [`${d.value.toFixed(1)}${d.suffix}`]));
+      });
+      svg.appendChild(el("text", { x: margin.left, y: height - 4, class: "source" }, ["각 지표의 2016-2025 고점 대비 2025 값. 마진은 percentage point."]));
+      document.getElementById("dotChart").appendChild(svg);
+    }
+
+    function sparkline(values, width = 150, height = 28) {
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const x = scale([0, values.length - 1], [2, width - 2]);
+      const y = scale([min, max || 1], [height - 3, 3]);
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, width, height, "aria-hidden": "true" });
+      svg.appendChild(el("path", { d: path(values.map((v, i) => [x(i), y(v)])), fill: "none", stroke: "var(--ink)", "stroke-width": 1.2 }));
+      svg.appendChild(el("circle", { cx: x(values.length - 1), cy: y(values[values.length - 1]), r: 2.5, fill: "var(--forecast)" }));
+      return svg;
+    }
+
+    function fillSparkTable() {
+      const actual = financialData.filter(d => d.type === "actual");
+      const priceByYear = new Map(priceData.filter(d => d.type === "actual").map(d => [Math.floor(d.year), d.close]));
+      const rows = [
+        { name: "주가", values: actual.map(d => priceByYear.get(d.year)), fmt: v => `$${v.toFixed(0)}` },
+        { name: "매출", values: actual.map(d => d.revenue), fmt: v => `$${v.toFixed(1)}B` },
+        { name: "영업이익", values: actual.map(d => d.op), fmt: v => `$${v.toFixed(1)}B` },
+        { name: "영업이익률", values: actual.map(d => d.margin), fmt: v => `${v.toFixed(1)}%` },
+        { name: "인도량", values: actual.map(d => d.deliveries), fmt: v => `${v.toFixed(3)}M` }
+      ];
+      const tbody = document.getElementById("sparkRows");
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+        const name = document.createElement("td");
+        name.textContent = row.name;
+        tr.appendChild(name);
+        const spark = document.createElement("td");
+        spark.appendChild(sparkline(row.values));
+        tr.appendChild(spark);
+        const cells = [row.fmt(row.values[0]), row.fmt(row.values[row.values.length - 1]), row.fmt(Math.max(...row.values)), row.fmt(Math.min(...row.values))];
+        for (const value of cells) {
+          const td = document.createElement("td");
+          td.textContent = value;
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    function fillTable() {
+      const priceByYear = new Map(priceData.filter(d => d.type === "actual").map(d => [Math.floor(d.year), d.close]));
+      const tbody = document.getElementById("dataRows");
+      for (const d of financialData) {
+        const tr = document.createElement("tr");
+        const cells = [
+          d.year + (d.type === "estimate" ? "E" : ""),
+          priceByYear.has(d.year) ? `$${priceByYear.get(d.year).toFixed(2)}${d.year === 2026 ? " (5월)" : ""}` : "해당 없음",
+          `$${d.revenue.toFixed(1)}B`,
+          d.op == null ? "해당 없음" : `$${d.op.toFixed(1)}B`,
+          d.margin == null ? "해당 없음" : `${d.margin.toFixed(1)}%`,
+          d.deliveries == null ? "해당 없음" : `${d.deliveries.toFixed(3)}M`,
+          d.type === "estimate" ? "추정" : "실제"
+        ];
+        for (const value of cells) {
+          const td = document.createElement("td");
+          td.textContent = value;
+          if (d.type === "estimate") td.className = "forecast-cell";
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    drawPriceChart();
+    drawFinancialChart();
+    drawDeliveryChart();
+    drawIndexChart();
+    drawSlopeChart();
+    drawScatterChart();
+    drawDotChart();
+    fillSparkTable();
+    fillTable();
+  </script>
+</body>
+</html>

@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>삼성전자: 주가, 매출, 영업이익률</title>
+  <link rel="icon" href="data:," />
+  <style>
+    :root {
+      --paper: #fbfaf7;
+      --ink: #171717;
+      --muted: #6b665d;
+      --faint: #e5e0d7;
+      --rule: #c9c1b4;
+      --actual: #171717;
+      --forecast: #b3261e;
+      --stock: #385f71;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+      line-height: 1.45;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 36px auto 48px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+      gap: 28px;
+      align-items: end;
+      border-bottom: 1px solid var(--ink);
+      padding-bottom: 18px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 4vw, 54px);
+      line-height: 1.02;
+      font-weight: 400;
+      letter-spacing: 0;
+      margin: 0 0 10px;
+    }
+
+    .subtitle {
+      max-width: 740px;
+      color: var(--muted);
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .stamp {
+      font-family: "SF Mono", "Berkeley Mono", ui-monospace, monospace;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--rule);
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      margin: 0 0 24px;
+    }
+
+    .metric {
+      background: var(--paper);
+      padding: 14px 16px 16px;
+      min-height: 94px;
+    }
+
+    .metric b {
+      display: block;
+      font-family: "SF Mono", "Berkeley Mono", ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .metric strong {
+      display: block;
+      font-family: "SF Mono", "Berkeley Mono", ui-monospace, monospace;
+      font-size: clamp(19px, 2.3vw, 28px);
+      line-height: 1.05;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 7px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 22px;
+      min-width: 0;
+    }
+
+    section {
+      border-top: 1px solid var(--rule);
+      padding-top: 14px;
+      min-width: 0;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(360px, 0.5fr) minmax(360px, 0.5fr);
+      align-items: baseline;
+      gap: 18px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      max-width: 720px;
+    }
+
+    .chart {
+      width: 100%;
+      max-width: 100%;
+      min-height: 280px;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    .axis, .tick, .source, .label, .value, .annotation {
+      font-family: "SF Mono", "Berkeley Mono", ui-monospace, monospace;
+    }
+
+    .axis { stroke: var(--muted); stroke-width: 0.8; }
+    .gridline { stroke: var(--faint); stroke-width: 0.7; }
+    .tick { fill: var(--muted); font-size: 11px; }
+    .label { fill: var(--ink); font-size: 12px; }
+    .value { fill: var(--ink); font-size: 11px; font-weight: 650; }
+    .source { fill: var(--muted); font-size: 10.5px; }
+    .annotation { fill: var(--muted); font-size: 11px; }
+
+    .table-wrap {
+      overflow-x: auto;
+      max-width: 100%;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 720px;
+      font-family: "SF Mono", "Berkeley Mono", ui-monospace, monospace;
+      font-size: 12px;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: right;
+      border-bottom: 1px solid var(--faint);
+      white-space: nowrap;
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+    th {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    .forecast-cell { color: var(--forecast); }
+
+    footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--rule);
+      padding-top: 12px;
+    }
+
+    a { color: var(--ink); }
+
+    @media (max-width: 760px) {
+      main { width: min(100vw - 24px, 1180px); margin-top: 22px; }
+      header { grid-template-columns: 1fr; gap: 12px; }
+      .stamp { text-align: left; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .section-head { display: block; }
+      .note { margin-top: 4px; }
+      .chart svg { width: 720px; max-width: none; }
+    }
+
+    @media (max-width: 460px) {
+      .summary { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>삼성전자, 2021-2027</h1>
+        <p class="subtitle">주가는 월말/최근 종가, 실적은 연간 매출과 영업이익률. 2026-2027은 실제치와 섞이지 않도록 붉은 점선으로 분리했다.</p>
+      </div>
+      <div class="stamp">005930 KRX<br />원, 조 원<br />작성 2026-05-24 KST</div>
+    </header>
+
+    <div class="summary">
+      <div class="metric">
+        <b>최근 주가</b>
+        <strong>292,500원</strong>
+        <span>2026-05-22 종가</span>
+      </div>
+      <div class="metric">
+        <b>2025 매출</b>
+        <strong>333.6조 원</strong>
+        <span>2024년 대비 +10.9%</span>
+      </div>
+      <div class="metric">
+        <b>2025 영업이익률</b>
+        <strong>13.1%</strong>
+        <span>2024년 10.9%에서 상승</span>
+      </div>
+      <div class="metric">
+        <b>2027E 영업이익률</b>
+        <strong>61.7%</strong>
+        <span>KB증권 추정치</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section>
+        <div class="section-head">
+          <h2>주가: 2021 이후 하락, 2025-2026 AI 메모리 사이클에서 급등</h2>
+          <p class="note">연말 종가를 연결하고 2026은 5월 22일 종가까지 표시. KB의 12개월 목표가 360,000원은 예측선이 아니라 별도 목표점이다.</p>
+        </div>
+        <div id="priceChart" class="chart"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>실적: 2023 저점 이후 회복, 2026-2027은 단일 리포트 추정치</h2>
+          <p class="note">이중축을 쓰지 않고 매출·영업이익·영업이익률을 같은 시간축의 작은 패널로 나눴다. 붉은색은 KB증권 추정치다.</p>
+        </div>
+        <div id="financialChart" class="chart"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>숫자 표</h2>
+          <p class="note">정확한 값 확인용. 예측치는 붉은색으로 표시했다.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>연도</th>
+                <th>주가 표시값</th>
+                <th>매출</th>
+                <th>영업이익</th>
+                <th>영업이익률</th>
+                <th>구분</th>
+              </tr>
+            </thead>
+            <tbody id="dataRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      출처: Digrin 월별 주가 이력(2021-2026 종가), Twelve Data 최근 KRX 종가(2026-05-22), StockAnalysis/S&amp;P Global Market Intelligence FY2021-FY2025 매출·영업이익·영업이익률, KB증권 2026-05-11 보고서 FY2026E-FY2027E 매출·영업이익·목표주가. 이 자료는 시각화 예시이며 투자 조언이 아니다.
+    </footer>
+  </main>
+
+  <script>
+    const priceData = [
+      { year: 2021, value: 78300, type: "actual", label: "7.8만" },
+      { year: 2022, value: 55300, type: "actual", label: "5.5만" },
+      { year: 2023, value: 78500, type: "actual", label: "7.9만" },
+      { year: 2024, value: 53200, type: "actual", label: "5.3만" },
+      { year: 2025, value: 119900, type: "actual", label: "12.0만" },
+      { year: 2026.39, value: 292500, type: "actual", label: "29.3만" },
+      { year: 2027.39, value: 360000, type: "target", label: "36만 목표" }
+    ];
+
+    const financialData = [
+      { year: 2021, revenue: 279.605, op: 51.634, margin: 18.47, type: "actual" },
+      { year: 2022, revenue: 302.231, op: 43.377, margin: 14.35, type: "actual" },
+      { year: 2023, revenue: 258.935, op: 6.567, margin: 2.54, type: "actual" },
+      { year: 2024, revenue: 300.871, op: 32.726, margin: 10.88, type: "actual" },
+      { year: 2025, revenue: 333.606, op: 43.601, margin: 13.07, type: "actual" },
+      { year: 2026, revenue: 704.577, op: 360.407, margin: 51.15, type: "estimate" },
+      { year: 2027, revenue: 791.898, op: 488.311, margin: 61.66, type: "estimate" }
+    ];
+
+    function el(name, attrs = {}, children = []) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+      for (const child of children) node.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
+      return node;
+    }
+
+    function scale(domain, range) {
+      const [d0, d1] = domain;
+      const [r0, r1] = range;
+      return value => r0 + ((value - d0) / (d1 - d0)) * (r1 - r0);
+    }
+
+    function path(points) {
+      return points.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+    }
+
+    function drawPriceChart() {
+      const width = 1120, height = 330;
+      const margin = { top: 26, right: 96, bottom: 58, left: 74 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "삼성전자 2021년부터 2026년 5월까지 주가와 12개월 목표주가" });
+      const x = scale([2021, 2027.4], [margin.left, margin.left + innerW]);
+      const y = scale([0, 380000], [margin.top + innerH, margin.top]);
+      const actual = priceData.filter(d => d.type === "actual");
+      const target = priceData.find(d => d.type === "target");
+      const ticks = [0, 100000, 200000, 300000];
+
+      for (const tick of ticks) {
+        const yy = y(tick);
+        svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: "gridline" }));
+        svg.appendChild(el("text", { x: margin.left - 10, y: yy + 4, "text-anchor": "end", class: "tick" }, [`${tick / 10000}만`]));
+      }
+
+      svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: y(0), y2: y(0), class: "axis" }));
+      for (let yr = 2021; yr <= 2027; yr++) {
+        svg.appendChild(el("text", { x: x(yr), y: height - 24, "text-anchor": "middle", class: "tick" }, [String(yr)]));
+      }
+
+      svg.appendChild(el("path", {
+        d: path(actual.map(d => [x(d.year), y(d.value)])),
+        fill: "none",
+        stroke: "var(--stock)",
+        "stroke-width": "2"
+      }));
+
+      for (const d of actual) {
+        svg.appendChild(el("circle", { cx: x(d.year), cy: y(d.value), r: 4, fill: "var(--stock)" }));
+      }
+
+      const last = actual[actual.length - 1];
+      svg.appendChild(el("text", { x: x(last.year) + 8, y: y(last.value) - 8, class: "value" }, [`${last.label}`]));
+      svg.appendChild(el("text", { x: x(2023), y: y(78500) - 14, "text-anchor": "middle", class: "annotation" }, ["2023년 주가는 회복, 이익은 사이클 저점"]));
+
+      svg.appendChild(el("line", {
+        x1: x(last.year), x2: x(target.year), y1: y(last.value), y2: y(target.value),
+        stroke: "var(--forecast)", "stroke-width": "1.4", "stroke-dasharray": "4 5"
+      }));
+      svg.appendChild(el("circle", { cx: x(target.year), cy: y(target.value), r: 5, fill: "var(--forecast)" }));
+      svg.appendChild(el("text", { x: x(target.year) + 8, y: y(target.value) + 4, class: "value", fill: "var(--forecast)" }, [target.label]));
+      svg.appendChild(el("text", { x: margin.left, y: height - 6, class: "source" }, ["주가: Digrin 월별 종가, 최근 종가: Twelve Data, 목표주가: KB증권 12개월 기준."]));
+
+      document.getElementById("priceChart").appendChild(svg);
+    }
+
+    function drawFinancialChart() {
+      const width = 1120, height = 470;
+      const margin = { top: 56, right: 36, bottom: 58, left: 74 };
+      const innerW = width - margin.left - margin.right;
+      const revenuePanelH = 200;
+      const marginPanelH = 112;
+      const panelGap = 54;
+      const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "삼성전자 2021년부터 2027년 추정치까지 매출과 영업이익 막대, 영업이익률 선" });
+      const x = scale([2020.5, 2027.5], [margin.left, margin.left + innerW]);
+      const yRevenue = scale([0, 840], [margin.top + revenuePanelH, margin.top]);
+      const marginTop = margin.top + revenuePanelH + panelGap;
+      const yMargin = scale([0, 70], [marginTop + marginPanelH, marginTop]);
+      const revenueBarW = 36;
+      const opBarW = 24;
+      const actual = financialData.filter(d => d.type === "actual");
+      const estimate = financialData.filter(d => d.type === "estimate");
+
+      svg.appendChild(el("text", { x: margin.left, y: margin.top - 28, class: "label" }, ["매출 | 영업이익 (조 원)"]));
+      svg.appendChild(el("rect", { x: margin.left, y: margin.top - 18, width: 16, height: 8, fill: "rgba(23,23,23,0.15)", stroke: "var(--actual)", "stroke-width": 0.7 }));
+      svg.appendChild(el("text", { x: margin.left + 22, y: margin.top - 10, class: "annotation" }, ["매출"]));
+      svg.appendChild(el("rect", { x: margin.left + 68, y: margin.top - 18, width: 12, height: 8, fill: "rgba(23,23,23,0.42)", stroke: "var(--actual)", "stroke-width": 0.7 }));
+      svg.appendChild(el("text", { x: margin.left + 86, y: margin.top - 10, class: "annotation" }, ["영업이익"]));
+
+      for (const tick of [0, 400, 800]) {
+        const yy = yRevenue(tick);
+        svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: "gridline" }));
+        svg.appendChild(el("text", { x: margin.left - 10, y: yy + 4, "text-anchor": "end", class: "tick" }, [`${tick}조`]));
+      }
+
+      svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yRevenue(0), y2: yRevenue(0), class: "axis" }));
+      svg.appendChild(el("line", { x1: x(2025.5), x2: x(2025.5), y1: margin.top, y2: marginTop + marginPanelH, stroke: "var(--rule)", "stroke-width": 1, "stroke-dasharray": "3 4" }));
+      svg.appendChild(el("text", { x: x(2025.44), y: margin.top - 10, "text-anchor": "end", class: "annotation" }, ["실제"]));
+      svg.appendChild(el("text", { x: x(2025.56), y: margin.top - 10, class: "annotation" }, ["추정"]));
+
+      for (const d of financialData) {
+        const isEstimate = d.type === "estimate";
+        const revenueColor = isEstimate ? "rgba(179,38,30,0.16)" : "rgba(23,23,23,0.15)";
+        const opColor = isEstimate ? "rgba(179,38,30,0.40)" : "rgba(23,23,23,0.42)";
+        const stroke = isEstimate ? "var(--forecast)" : "var(--actual)";
+        svg.appendChild(el("rect", {
+          x: x(d.year) - revenueBarW - 3,
+          y: yRevenue(d.revenue),
+          width: revenueBarW,
+          height: yRevenue(0) - yRevenue(d.revenue),
+          fill: revenueColor,
+          stroke,
+          "stroke-width": isEstimate ? 1.2 : 0.8
+        }));
+        svg.appendChild(el("rect", {
+          x: x(d.year) + 5,
+          y: yRevenue(d.op),
+          width: opBarW,
+          height: yRevenue(0) - yRevenue(d.op),
+          fill: opColor,
+          stroke,
+          "stroke-width": isEstimate ? 1.2 : 0.8
+        }));
+      }
+
+      for (const d of financialData) {
+        const isEstimate = d.type === "estimate";
+        if ([2023, 2025, 2027].includes(d.year)) {
+          svg.appendChild(el("text", {
+            x: x(d.year) - revenueBarW / 2 - 3,
+            y: yRevenue(d.revenue) - 7,
+            "text-anchor": "middle",
+            class: "value",
+            fill: isEstimate ? "var(--forecast)" : "var(--ink)"
+          }, [`${Math.round(d.revenue)}조`]));
+          svg.appendChild(el("text", {
+            x: x(d.year) + opBarW + 10,
+            y: yRevenue(d.op) + 4,
+            class: "value",
+            fill: isEstimate ? "var(--forecast)" : "var(--ink)"
+          }, [`${Math.round(d.op)}조`]));
+        }
+      }
+
+      svg.appendChild(el("text", { x: margin.left, y: marginTop - 12, class: "label" }, ["영업이익률 (%)"]));
+      for (const tick of [0, 30, 60]) {
+        const yy = yMargin(tick);
+        svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: "gridline" }));
+        svg.appendChild(el("text", { x: margin.left - 10, y: yy + 4, "text-anchor": "end", class: "tick" }, [`${tick}%`]));
+      }
+
+      svg.appendChild(el("line", { x1: margin.left, x2: margin.left + innerW, y1: yMargin(0), y2: yMargin(0), class: "axis" }));
+      svg.appendChild(el("path", { d: path(actual.map(d => [x(d.year), yMargin(d.margin)])), fill: "none", stroke: "var(--actual)", "stroke-width": 1.8 }));
+      svg.appendChild(el("path", { d: path([actual[actual.length - 1], ...estimate].map(d => [x(d.year), yMargin(d.margin)])), fill: "none", stroke: "var(--forecast)", "stroke-width": 1.8, "stroke-dasharray": "4 5" }));
+      for (const d of financialData) {
+        const isEstimate = d.type === "estimate";
+        svg.appendChild(el("circle", { cx: x(d.year), cy: yMargin(d.margin), r: isEstimate ? 4.4 : 3.8, fill: isEstimate ? "var(--forecast)" : "var(--actual)" }));
+        if ([2023, 2025, 2027].includes(d.year)) {
+          svg.appendChild(el("text", {
+            x: x(d.year) + 8,
+            y: yMargin(d.margin) - 7,
+            class: "value",
+            fill: isEstimate ? "var(--forecast)" : "var(--ink)"
+          }, [`${d.margin.toFixed(1)}%`]));
+        }
+      }
+
+      for (let yr = 2021; yr <= 2027; yr++) {
+        svg.appendChild(el("text", { x: x(yr), y: height - 28, "text-anchor": "middle", class: "tick" }, [String(yr) + (yr >= 2026 ? "E" : "")]));
+      }
+      svg.appendChild(el("text", { x: margin.left, y: height - 6, class: "source" }, ["실적: StockAnalysis/S&P Global Market Intelligence. 추정: KB증권, 2026-05-11. 2026-2027은 붉은 추정 구간으로 표시."]));
+
+      document.getElementById("financialChart").appendChild(svg);
+    }
+
+    function fillTable() {
+      const priceByYear = new Map(priceData.filter(d => d.type === "actual").map(d => [Math.floor(d.year), d.value]));
+      const tbody = document.getElementById("dataRows");
+      for (const d of financialData) {
+        const tr = document.createElement("tr");
+        const cells = [
+          d.year + (d.type === "estimate" ? "E" : ""),
+          priceByYear.has(d.year) ? `${priceByYear.get(d.year).toLocaleString()}원${d.year === 2026 ? " (5월 22일)" : ""}` : "해당 없음",
+          `${d.revenue.toFixed(1)}조 원`,
+          `${d.op.toFixed(1)}조 원`,
+          `${d.margin.toFixed(2)}%`,
+          d.type === "estimate" ? "추정" : "실제"
+        ];
+        for (const value of cells) {
+          const td = document.createElement("td");
+          td.textContent = value;
+          if (d.type === "estimate") td.className = "forecast-cell";
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    drawPriceChart();
+    drawFinancialChart();
+    fillTable();
+  </script>
+</body>
+</html>
