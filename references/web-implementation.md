@@ -43,6 +43,8 @@ Weak interactions:
 
 - Give charts stable dimensions through container constraints, aspect ratios, or explicit min/max sizes.
 - Design mobile states intentionally: table fallback, horizontal scroll, small multiples, reduced tick density, or compact sparklines.
+- Do not apply one global mobile width rule to every SVG. Wide overview charts may need horizontal scroll, but small multiples, lab panels, sparklines, slopegraphs, and dot plots should usually fit their own container width.
+- When a page mixes wide primary charts and compact repeated charts, give them separate classes or components so mobile overflow behavior can differ.
 - Check long labels and maximum numeric values.
 - Avoid scaling font size with viewport width.
 - Keep legends, controls, and source notes from overlapping the plot.
@@ -69,6 +71,7 @@ Look for:
 - No text overlap or clipped labels.
 - Tooltip/focus behavior if interaction exists.
 - Responsive behavior at narrow widths.
+- In repeated panels, each chart's rendered width should be no wider than its panel unless intentional horizontal scroll is part of the design.
 - No console errors.
 
 If using canvas or WebGL, include a basic pixel/nonblank check when practical.
