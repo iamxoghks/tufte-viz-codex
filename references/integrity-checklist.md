@@ -10,6 +10,7 @@ Run this before considering a visualization done.
 - Rates, percentages, and raw counts are not mixed without explanation.
 - Different units are separated into aligned panels unless a dual-axis display is explicitly justified and labeled.
 - Same-unit measures can share one axis, but their marks must be distinguishable by position, width, weight, or direct labels rather than decorative color alone.
+- When same-unit measures share a panel, check whether the smaller measure is still legible; if not, switch to small multiples or explicitly offer that option.
 - Denominators are visible where they change the interpretation.
 - Area, angle, volume, and color are not used where position or length would be clearer.
 - Forecasts, estimates, missing values, and uncertainty are visually distinct.

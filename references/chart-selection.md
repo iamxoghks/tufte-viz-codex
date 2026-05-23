@@ -58,3 +58,12 @@ Choose the display from the data shape and the reader's job. Do not choose by wh
 - Would small multiples make the comparison easier than one crowded chart?
 - Am I mixing units or scales? If yes, split into aligned panels before reaching for a second axis.
 - Are measures in the same unit? If yes, consider grouping them in one panel and separating only rates or percentages.
+
+## Multiple Time-Series Measures
+
+Use this decision order:
+
+1. **Same unit**: default to one aligned panel with grouped marks, direct labels, and a shared axis.
+2. **Same unit but large scale gap**: offer or choose small multiples when the smaller measure becomes unreadable or when each metric's individual trend matters more than same-unit comparison.
+3. **Different units or rates**: split into aligned panels on the same time axis.
+4. **Dual axis**: use only when the user explicitly needs it or when there is a defensible analytical reason that survives a label/readability check.
