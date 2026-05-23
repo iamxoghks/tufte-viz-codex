@@ -15,6 +15,7 @@ Run this before considering a visualization done.
 - Area, angle, volume, and color are not used where position or length would be clearer.
 - Forecasts, estimates, missing values, and uncertainty are visually distinct.
 - Forecasts or analyst estimates are not styled as a continuation of audited actuals unless that continuity is the intended claim.
+- Do not invent missing forecast series from adjacent metrics. If revenue estimates exist but operating income or margin estimates do not, show only revenue estimates and mark the missing fields as unavailable.
 
 ## Analytical Completeness
 
