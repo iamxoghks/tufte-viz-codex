@@ -1,0 +1,7 @@
+interface:
+  display_name: "Tufte Viz Codex"
+  short_description: "Design and refactor honest data visuals"
+  default_prompt: "Use $tufte-viz-codex to design or improve this chart with Tufte-style analytical rigor."
+
+policy:
+  allow_implicit_invocation: true
