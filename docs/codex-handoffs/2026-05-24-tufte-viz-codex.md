@@ -29,3 +29,10 @@ Date: 2026-05-24
 - Initial SSH push failed with `Permission denied (publickey)`, so the remote was switched to HTTPS and pushed through `gh` credential setup.
 - Installed locally by cloning the private repo to `/Users/iamxoghks/.codex/skills/tufte-viz-codex`.
 - Re-ran skill validation against the installed copy. Result: `Skill is valid!`
+
+## Later Updates
+
+- Added explicit same-unit chart guidance after the Samsung example: same-unit metrics can share one panel, but if a smaller metric becomes unreadable, offer small multiples instead.
+- Added missing-forecast handling after the TSLA example: do not invent unavailable forecast series; mark them unavailable and only plot estimates that are sourced.
+- Added responsive web guidance after the TSLA Visualization Lab mobile issue: wide primary charts may use horizontal scroll, but compact repeated panels such as small multiples, slopegraphs, dot plots, and sparklines should fit their own container width and be verified separately.
+- Responsive guidance content commit: `24d9ad4`; this handoff update follows it.
